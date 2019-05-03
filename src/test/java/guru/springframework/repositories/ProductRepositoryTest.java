@@ -1,5 +1,7 @@
 package guru.springframework.repositories;
 
+import com.alibaba.fastjson.JSONObject;
+import guru.springframework.SpringBootWebApplicationTests;
 import guru.springframework.configuration.RepositoryConfiguration;
 import guru.springframework.domain.Product;
 import org.junit.Test;
@@ -12,9 +14,7 @@ import java.math.BigDecimal;
 
 import static org.junit.Assert.*;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(classes = {RepositoryConfiguration.class})
-public class ProductRepositoryTest {
+public class ProductRepositoryTest extends SpringBootWebApplicationTests {
 
     private ProductRepository productRepository;
 
@@ -23,42 +23,42 @@ public class ProductRepositoryTest {
         this.productRepository = productRepository;
     }
 
+    // 就是测试通过jpa，对内存数据库进行增该查
     @Test
-    public void testSaveProduct(){
-        //setup product
+    public void save() {
+        // 创建一个Product对象
         Product product = new Product();
         product.setDescription("Spring Framework Guru Shirt");
         product.setPrice(new BigDecimal("18.95"));
         product.setProductId("1234");
 
-        //save product, verify has ID value after save
-        assertNull(product.getId()); //null before save
-        productRepository.save(product);
-        assertNotNull(product.getId()); //not null after save
-        //fetch from DB
-        Product fetchedProduct = productRepository.findById(product.getId()).orElse(null);
+        // 开始，它的ID为null
+        assertNull(product.getId());
 
-        //should not be null
+        // 保存到数据库后，会获得自增主键
+        productRepository.save(product);
+        assertNotNull(product.getId());
+
+        System.out.println(JSONObject.toJSONString(product));
+
+        // 通过Crud方法再次读取数据
+        Product fetchedProduct = productRepository.findById(product.getId()).orElse(null);
         assertNotNull(fetchedProduct);
 
-        //should equal
+        // 前后来个记录的id应该相等
         assertEquals(product.getId(), fetchedProduct.getId());
         assertEquals(product.getDescription(), fetchedProduct.getDescription());
+    }
 
-        //update description and save
-        fetchedProduct.setDescription("New Description");
-        productRepository.save(fetchedProduct);
+    @Test
+    public void list(){
 
-        //get from DB, should be updated
-        Product fetchedUpdatedProduct = productRepository.findById(fetchedProduct.getId()).orElse(null);
-        assertEquals(fetchedProduct.getDescription(), fetchedUpdatedProduct.getDescription());
-
-        //verify count of products in DB
+        // 确认数据库还是有且只有一条记录
         long productCount = productRepository.count();
-        assertEquals(productCount, 1);
 
-        //get all products, list should only have one
+        // 获得所有的记录
         Iterable<Product> products = productRepository.findAll();
+        System.out.println(JSONObject.toJSONString(products));
 
         int count = 0;
 
@@ -66,6 +66,7 @@ public class ProductRepositoryTest {
             count++;
         }
 
-        assertEquals(count, 1);
+        // 确认两个sql不矛盾
+        assertEquals(count, productCount);
     }
 }

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 
+// 在程序启动的时候调用
 @Component
 public class ProductLoader implements ApplicationListener<ContextRefreshedEvent> {
 
@@ -26,6 +27,8 @@ public class ProductLoader implements ApplicationListener<ContextRefreshedEvent>
 
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
+
+        // 向内存数据库中初始化一些数据
 
         Product shirt = new Product();
         shirt.setDescription("Spring Framework Guru Shirt");
